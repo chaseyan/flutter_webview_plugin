@@ -31,6 +31,7 @@ class FlutterWebviewPlugin {
   final _onScrollYChanged = StreamController<double>.broadcast();
   final _onProgressChanged = new StreamController<double>.broadcast();
   final _onHttpError = StreamController<WebViewHttpError>.broadcast();
+  final _onAuthCallback = StreamController<AuthCallback>.broadcast();
 
   Future<Null> _handleMessages(MethodCall call) async {
     switch (call.method) {
@@ -62,6 +63,9 @@ class FlutterWebviewPlugin {
       case 'onHttpError':
         _onHttpError.add(WebViewHttpError(call.arguments['code'], call.arguments['url']));
         break;
+      case 'onAuthCallback':
+        _onAuthCallback.add(AuthCallback(call.arguments['account'], call.arguments['pwd']));
+        break;
     }
   }
 
@@ -89,6 +93,8 @@ class FlutterWebviewPlugin {
   Stream<double> get onScrollXChanged => _onScrollXChanged.stream;
 
   Stream<WebViewHttpError> get onHttpError => _onHttpError.stream;
+
+  Stream<AuthCallback> get onAuthCallback => _onAuthCallback.stream;
 
   /// Start the Webview with [url]
   /// - [headers] specify additional HTTP headers
@@ -274,4 +280,11 @@ class WebViewHttpError {
 
   final String url;
   final String code;
+}
+
+class AuthCallback {
+  AuthCallback(this.account, this.pwd);
+
+  final String account;
+  final String pwd;
 }

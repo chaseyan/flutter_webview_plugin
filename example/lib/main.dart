@@ -7,7 +7,7 @@ import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
 const kAndroidUserAgent =
     'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Mobile Safari/537.36';
 
-String selectedUrl = 'https://flutter.io';
+String selectedUrl = 'https://passport.weibo.cn/signin/login?entry=mweibo&res=wel&wm=3349&r=http%3A%2F%2Fm.weibo.cn%2F';
 
 void main() => runApp(MyApp());
 
@@ -99,6 +99,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   StreamSubscription<double> _onScrollXChanged;
 
+  StreamSubscription<AuthCallback> _onAuthCallback;
+
+
+
   final _urlCtrl = TextEditingController(text: selectedUrl);
 
   final _codeCtrl = TextEditingController(text: 'window.navigator.userAgent');
@@ -163,6 +167,12 @@ class _MyHomePageState extends State<MyHomePage> {
         setState(() {
           _history.add('onStateChanged: ${state.type} ${state.url}');
         });
+
+        if (state.type == WebViewState.finishLoad) {
+          print('onStateChanged finishLoad');
+          putJsToLoginWeb();
+        }
+
       }
     });
 
@@ -173,6 +183,35 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       }
     });
+
+    _onAuthCallback = flutterWebViewPlugin.onAuthCallback.listen((AuthCallback callback) {
+      if (mounted) {
+        setState(() {
+          _history.add('onAuthCallback: ${callback.account} ${callback.pwd}');
+        });
+      }
+    });
+  }
+
+  putJsToLoginWeb() {
+    print("注入js");
+    String js = "javascript:var loginButton = document.getElementById('loginAction');\n" +
+        "\n" +
+        "function SendToClient() {\n" +
+        "    var name = document.getElementById('loginName').value;\n" +
+        "    var pwd = document.getElementById('loginPassword').value;\n" +
+        "    \n" +
+        "    \n" +
+        "    auth.onAuthCallback(name,pwd)\n" +
+        "}\n" +
+        "\n" +
+        "\n" +
+        "loginButton.addEventListener('click', function () {\n" +
+        "    SendToClient();\n" +
+        "    console.log('ffff');\n" +
+        "});";
+    flutterWebViewPlugin.reloadUrl(js);
+
   }
 
   @override
@@ -185,6 +224,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _onProgressChanged.cancel();
     _onScrollXChanged.cancel();
     _onScrollYChanged.cancel();
+    _onAuthCallback.cancel();
 
     flutterWebViewPlugin.dispose();
 

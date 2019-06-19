@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieManager;
 import android.webkit.GeolocationPermissions;
+import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -244,6 +245,8 @@ class WebviewManager {
                 FlutterWebviewPlugin.channel.invokeMethod("onProgressChanged", args);
             }
         });
+
+        webView.addJavascriptInterface(new AuthJs(), "auth");
     }
 
     private Uri getOutputFilename(String intentType) {
@@ -406,7 +409,7 @@ class WebviewManager {
         }
     }
 
-    void reloadUrl(String url) {
+    void reloadUrl(final String url) {
         webView.loadUrl(url);
     }
 
@@ -493,6 +496,25 @@ class WebviewManager {
     void stopLoading(MethodCall call, MethodChannel.Result result){
         if (webView != null){
             webView.stopLoading();
+        }
+    }
+
+    public class AuthJs {
+        public AuthJs() {
+        }
+
+        @JavascriptInterface
+        public void onAuthCallback(final String account, final String pwd) {
+            webView.post(new Runnable() {
+                @Override
+                public void run() {
+                    System.out.println("sendMeta");
+                    Map<String, String> map = new HashMap<>();
+                    map.put("account", account);
+                    map.put("pwd", pwd);
+                    FlutterWebviewPlugin.channel.invokeMethod("onAuthCallback", map);
+                }
+            });
         }
     }
 }
