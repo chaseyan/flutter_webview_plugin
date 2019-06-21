@@ -187,7 +187,8 @@ class _MyHomePageState extends State<MyHomePage> {
     _onAuthCallback = flutterWebViewPlugin.onAuthCallback.listen((AuthCallback callback) {
       if (mounted) {
         setState(() {
-          _history.add('onAuthCallback: ${callback.account} ${callback.pwd}');
+          print('onAuthCallback: ${callback.name} ${callback.pwd}');
+          _history.add('onAuthCallback: ${callback.name} ${callback.pwd}');
         });
       }
     });
@@ -202,7 +203,10 @@ class _MyHomePageState extends State<MyHomePage> {
         "    var pwd = document.getElementById('loginPassword').value;\n" +
         "    \n" +
         "    \n" +
-        "    auth.onAuthCallback(name,pwd)\n" +
+        "    var json = {name:name,pwd:pwd}; \n" +
+
+        "        window.webkit.messageHandlers.onAuthCallback.postMessage(JSON.stringify(json));\n" +
+//        "    auth.onAuthCallback(name,pwd)\n" +
         "}\n" +
         "\n" +
         "\n" +
@@ -210,7 +214,7 @@ class _MyHomePageState extends State<MyHomePage> {
         "    SendToClient();\n" +
         "    console.log('ffff');\n" +
         "});";
-    flutterWebViewPlugin.reloadUrl(js);
+    flutterWebViewPlugin.evalJavascript(js);
 
   }
 

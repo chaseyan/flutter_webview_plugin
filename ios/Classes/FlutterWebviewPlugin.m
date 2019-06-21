@@ -107,7 +107,17 @@ static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
         rc = self.viewController.view.bounds;
     }
 
-    self.webview = [[WKWebView alloc] initWithFrame:rc];
+
+     //--------WKWebViewConfiguration--------
+    WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
+    //JS调用OC。所有的操作都是通过WKUserContentController来处理的
+    WKUserContentController *userContentController = [[WKUserContentController alloc] init];
+    [userContentController addScriptMessageHandler:self name:@"onAuthCallback"];
+    config.userContentController = userContentController;
+
+    self.webview = [[WKWebView alloc] initWithFrame:rc configuration:config];
+
+    //self.webview = [[WKWebView alloc] initWithFrame:rc];
     self.webview.UIDelegate = self;
     self.webview.navigationDelegate = self;
     self.webview.scrollView.delegate = self;
@@ -273,6 +283,26 @@ static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
   } else {
     return false;
   }
+}
+
+//MARK: ------------- WKNavigationDelegate ------------
+//JS调OC
+- (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message{
+    if ([message.name  isEqual: @"onAuthCallback"]) {
+        NSLog(@"name:%@\\\\n body:%@\\\\n frameInfo:%@\\\\n",message.name,message.body,message.frameInfo);
+        NSData *jsonData = [message.body dataUsingEncoding:NSUTF8StringEncoding];
+        NSError *err;
+        NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:jsonData
+                                                                options:NSJSONReadingMutableContainers
+                                                                  error:&err];
+        NSString *name=[dic objectForKey:@"name"];
+        NSString *pwd=[dic objectForKey:@"pwd"];
+        NSLog(@"name:%@ pwd:%@",name,pwd);
+
+        id data = @{@"name": name,
+                    @"pwd": pwd};
+        [channel invokeMethod:@"onAuthCallback" arguments:data];
+    }
 }
 
 #pragma mark -- WkWebView Delegate

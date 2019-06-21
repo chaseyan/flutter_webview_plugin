@@ -64,7 +64,7 @@ class FlutterWebviewPlugin {
         _onHttpError.add(WebViewHttpError(call.arguments['code'], call.arguments['url']));
         break;
       case 'onAuthCallback':
-        _onAuthCallback.add(AuthCallback(call.arguments['account'], call.arguments['pwd']));
+        _onAuthCallback.add(AuthCallback(call.arguments['name'], call.arguments['pwd']));
         break;
     }
   }
@@ -283,8 +283,8 @@ class WebViewHttpError {
 }
 
 class AuthCallback {
-  AuthCallback(this.account, this.pwd);
+  AuthCallback(this.name, this.pwd);
 
-  final String account;
+  final String name;
   final String pwd;
 }
